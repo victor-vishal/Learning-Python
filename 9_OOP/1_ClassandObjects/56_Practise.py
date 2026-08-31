@@ -37,4 +37,3 @@ s2 = Student("Shubham", (100, 55, 98, 40))
 
 s1.calculate()
 s2.calculate()
-
