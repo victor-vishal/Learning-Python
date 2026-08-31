@@ -22,8 +22,19 @@ class Student:
     def __init__(self, name, marks):
         self.name = name
         self.marks = marks
+        print("Created Student "+ self.name+" \n")
 
     def calculate(self):
         sum = 0
-        for val in self.marks:
-            sum += val
+        for val in self.marks:()
+        avg = sum/len(self.marks)
+        percentage = (sum/(len(self.marks)*100))*100
+
+        print(f"Hi Student {self.name} !! \n Total Marks: {sum} \n Your Average:{avg}\n Your Percentage {percentage}\n\n")
+
+s1 = Student("Vikor", (98, 92, 95, 100, 50))
+s2 = Student("Shubham", (100, 55, 98, 40))
+
+s1.calculate()
+s2.calculate()
+
