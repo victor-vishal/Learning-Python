@@ -23,3 +23,6 @@ s2 = Student("Viktor", 20, 56)
 s1.display()
 var= s2.display()
 print(f"Roll no. of s1: {s1.get_roll()}")
+
+
+#Note each object has its own copy of the attributes but the methods are shared among all the objects of the class.
