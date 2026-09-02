@@ -24,7 +24,8 @@ class Student:
         cls.college_name = new_college_name
 
     def display(self):
-        print(f"Name: {self.name}, Age: {self.age}")
+        print(f"Name: {self.name}, Age: {self.age}, College: {self.college_name}") # here Student.college_name
+        # print(f"Name: {self.name}, Age: {self.age}, College: {Student.college_name}")
 
     @staticmethod
     def result(marks): # this function doesnt use any class or object variable, and the marks parameter is passed manually, so we can make it static method 
@@ -32,3 +33,14 @@ class Student:
             print("Pass")
         else:
             print("Fail")
+
+s1 = Student("Vishal", 20)
+s1.display() # Name: Vishal, Age: 20, College: ABC College
+s1.college("XYZ College") # changing the class variable college_name using class method
+s1.display() # Name: Vishal, Age: 20, College: XYZ College
+
+s2 = Student("Rohit", 21)
+s2.display() # Name: Rohit, Age: 21, College: XYZ College
+
+'''Updating the class variable using class method affects all instances of the class.
+    it is used when we want to change a common variable for all instances of the class.'''
