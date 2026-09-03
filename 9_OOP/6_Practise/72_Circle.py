@@ -4,16 +4,17 @@
 class Circle:
     def __init__(self,r):
         self.radius = r
-        print("Created a circle with radius {r}")
+        print("Created a circle with radius ", r)
 
-    def area(self, r):
-        area = 3.14*r*r
-        print("Area of cirlce: ", r)
+    def area(self):
+        area = 3.14 * self.radius ** 2
+        return area
 
-    def peri(self, r):
-        perimeter = 2*3.14*r
-        print("Perimeter of circle: ", perimeter)
+    def peri(self):
+        perimeter = 2*3.14*self.radius
+        return perimeter
 
 c1 = Circle(5)
-c1.area(5)
-c1.peri(5)
+print(f"Area:  {c1.area():.2f}")
+# print("Perimeter: ", c1.peri())#31.400000000000002
+print(f"Area: {c1.peri():.2f}") #31.40
