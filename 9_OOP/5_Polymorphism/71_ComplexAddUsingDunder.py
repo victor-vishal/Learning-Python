@@ -24,6 +24,9 @@ c2.showNumber() # 5 + 6i
 c3 = c1 + c2 # now we can use + operator to add two complex numbers
 c3.showNumber() # 7 + 9i
 
+c4 = c1 - c2 # now we can use - operator to subtract two complex numbers
+c4.showNumber() # -3 + -3i
+
 
 #in short working of + or - operator is defined in the class using dunder methods __add__ and __sub__ respectively. 
 # so when we do c1+c2, it is internally calling c1.__add__(c2) and returning a new object of Complex class.
