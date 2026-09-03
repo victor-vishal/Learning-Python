@@ -20,3 +20,9 @@ c2.showNumber() # 5 + 6i
 
 c3 = c1.add(c2) # returning a new object of Complex class
 c3.showNumber() # 7 + 9i
+
+#we cant do c1+c2 as + operator is not defined for this class
+
+c4 = c1 + c2 # TypeError: unsupported operand type(s) for +: 'Complex' and 'Complex'
+
+#To solve this we can use operator overloading by defining a dunder method __add__ in the Complex class
