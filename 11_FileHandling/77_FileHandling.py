@@ -8,10 +8,22 @@
 # file_object = open("filename", "mode")
 
 # Modes to open a file in Python:
-# 1. "r" - Read mode - Default mode. Opens a file for reading
-# 2. "w" - Write mode - Opens or creates a file for writing
-# 3. "a" - Append mode - Opens/creates a file for appending data
-# 4. "x" - Exclusive creation - Creates a new file, returns an error if the file exists
-# 5. "b" - Binary mode - Opens a file in binary mode
-# 6. "t" - Text mode - Opens a file in text mode (default)
+# "r" - Read mode - Opens a file for reading (default mode)
+# "w" - Write mode - Opens a file and overwrites the content or creates a new file
+# "a" - Append mode - Opens a file and appends the content to the end of the file
+# "x" - Exclusive creation - Creates a new file, gives error if the file already exists
 
+#combination of modes can also be used:
+# "r+" - Read and Write mode
+# "w+" - Write and Read mode
+# "a+" - Append and Read mode
+# "x+" - Exclusive creation and Read mode
+
+
+#THESE MODES define how the file will be opened, it is mostly used to define the type of file 
+#  "b" - Binary mode - Opens a file in binary mode
+#  "t" - Text mode - Opens a file in text mode (default)
+
+# SINCE text mode is default, we dont need to specify it, thus we use w instead of wt
+# but for binary files we need to specify it, and we use wb instead of w
+# python is blind to extensions, thus we need to specify the type of file we are opening, 
