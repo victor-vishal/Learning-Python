@@ -5,8 +5,8 @@
 # 1. Compile Time Errors: [although Python is an interpreted language, here compile time errors refer to errors that are detected before the program is run]
 # These are errors that occur during the compilation of the program. They are usually syntax errors, such as missing colons, parentheses, or incorrect indentation.
 
-if 1==1
-    print("Syntax error missing colon")  # This will raise a SyntaxError because of the missing colon after the if statement.
+# if 1==1
+#     print("Syntax error missing colon")  # This will raise a SyntaxError because of the missing colon after the if statement.
 
 
 
