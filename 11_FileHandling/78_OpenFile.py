@@ -18,6 +18,11 @@ print("================================")
 # to fix this we reset curson to the begining of the file using file.seek(0)
 file.seek(0) #resets the cursor to the begining of the file
 print(file.readline()) #reads the first line of the file 
+print("================================")
+file.seek(0)
+print(file.read(10)) #reads the first 10 characters of the file
+
 
 file.close() #closes the file/ releases the resource
 
+#
