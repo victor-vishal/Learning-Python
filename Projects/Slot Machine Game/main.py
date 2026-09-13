@@ -1,3 +1,5 @@
+import random
+
 MAX_LINES = 3 #Screaming shows CONSTANT
 MAX_BET = 100
 MIN_BET = 1
@@ -13,11 +15,22 @@ symbol_count ={
 }
 
 def get_slot_machine_spin(rows, cols, symbols):
-    all_symbols = []
+    all_symbols = [] # A,A, B,B,B,B
     for symbol, symbolCount in symbols.items(): # items() returns dictionary key value pairs as tuples
         for _ in range(symbolCount):    # _ is called throwaway/dummy variable, we use it show that we dont care about the variable, we just use it as a iterator 
             all_symbols.append(symbol)
 
+    columns = []
+    for _ in range(cols):
+        column = []
+        current_symbols = all_symbols[:] #copies list
+        for _ in range(rows):
+            value = random.choice(current_symbols)
+            current_symbols.remove(value) # prevents same symbol occurence in a column
+            column.append(value)
+    columns.append(column)
+
+    return columns
 
 def deposit():
     while True:
