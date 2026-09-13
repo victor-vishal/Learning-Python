@@ -2,6 +2,23 @@ MAX_LINES = 3 #Screaming shows CONSTANT
 MAX_BET = 100
 MIN_BET = 1
 
+ROWS = 3
+COLS = 3
+
+symbol_count ={
+    "A" : 2,
+    "B" : 4,
+    "C" : 6,
+    "D" : 8
+}
+
+def get_slot_machine_spin(rows, cols, symbols):
+    all_symbols = []
+    for symbol, symbolCount in symbols.items(): # items() returns dictionary key value pairs as tuples
+        for _ in range(symbolCount):    # _ is called throwaway/dummy variable, we use it show that we dont care about the variable, we just use it as a iterator 
+            all_symbols.append(symbol)
+
+
 def deposit():
     while True:
         amount = input("Enter the amount to deposit: ")
