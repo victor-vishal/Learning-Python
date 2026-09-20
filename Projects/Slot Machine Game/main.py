@@ -103,21 +103,34 @@ def getBet():
             print("Enter a number BRO!")
     return bet
 
-def main():
-    balance = deposit()
+def spin(balance):
     lines = getNumberOfLines()
     while True:
         bet = getBet()
         total_bet = bet * lines
+    
         if total_bet > balance:
             print("Insufficient Balance ({balance}) for betting {total_bet}!")
         else:
             break
+    
     print(f"You are betting ${total_bet} on {lines} lines")
-
+    
     slots = get_slot_machine_spin(ROWS, COLS, symbol_count)
     print_slot_machine(slots)
     winnings, winnings_lines = check_winnings(slots, lines, bet, symbol_value)
     print(f"You won ${winnings}")
     print(f"You won on ", *winnings_lines) # * unpacks the list and prints each element
+
+    return winnings - total_bet
+
+def main():
+    balance = deposit()
+    while True:
+        print(f"Current balance is ${balance}")
+        answer = input("Press Enter to play, q to quit: ")
+        if answer == "q":
+            break
+        balance +=spin(balance) 
+    print(f"You left with ${balance}")
 main()
