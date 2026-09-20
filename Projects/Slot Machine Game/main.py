@@ -14,6 +14,27 @@ symbol_count ={
     "D" : 8
 }
 
+symbol_value ={
+    "A" : 5,
+    "B" : 4,
+    "C" : 3,
+    "D" : 2
+}
+
+def check_winnings(columns, lines, bet, values):
+    winnings = 0
+    winnings_lines=[]
+    for line in range(lines):
+        symbol = columns[0][line]
+        for column in columns:
+            symbol_to_check = column[line]
+            if symbol != symbol_to_check:
+                break
+        else:
+            winnings += values[symbol] * bet
+            winnings_lines.append(line + 1)
+    return winnings, winnings_lines
+
 def get_slot_machine_spin(rows, cols, symbols):
     all_symbols = [] # A,A, B,B,B,B
     for symbol, symbolCount in symbols.items(): # items() returns dictionary key value pairs as tuples
@@ -36,7 +57,7 @@ def print_slot_machine(columns): #transposes matrix
     for row in range(len(columns[0])): # 0 assumes that we have at least one column
         for i, column in enumerate(columns):#returns i, sublist
             if i != len(column)-1:
-                print(column[row], end="|")
+                print(column[row], end=" | ")
             else:
                 print(column[row])
 
@@ -96,4 +117,7 @@ def main():
 
     slots = get_slot_machine_spin(ROWS, COLS, symbol_count)
     print_slot_machine(slots)
+    winnings, winnings_lines = check_winnings(slots, lines, bet, symbol_value)
+    print(f"You won ${winnings}")
+    print(f"You won on ", *winnings_lines) # * unpacks the list and prints each element
 main()
