@@ -28,7 +28,7 @@ def get_slot_machine_spin(rows, cols, symbols):
             value = random.choice(current_symbols)
             current_symbols.remove(value) # prevents same symbol occurence in a column
             column.append(value)
-    columns.append(column)
+        columns.append(column)
 
     return columns
 
@@ -36,7 +36,7 @@ def print_slot_machine(columns): #transposes matrix
     for row in range(len(columns[0])): # 0 assumes that we have at least one column
         for i, column in enumerate(columns):#returns i, sublist
             if i != len(column)-1:
-                print(column[row],"|")
+                print(column[row], end="|")
             else:
                 print(column[row])
 
@@ -94,4 +94,6 @@ def main():
             break
     print(f"You are betting ${total_bet} on {lines} lines")
 
+    slots = get_slot_machine_spin(ROWS, COLS, symbol_count)
+    print_slot_machine(slots)
 main()
