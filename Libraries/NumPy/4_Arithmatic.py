@@ -39,3 +39,16 @@ print (array1 - array2)
 # to concatenate two arrays we can use np.concatenate() function
 array3 = np.concatenate((array1, array2))
 print(array3) # prints [1 2 3 4 5 6 7 8]
+
+
+
+# Comparison operators
+score = np.array([90, 80, 30, 60])
+print(score > 50) # returns a boolean array of True and False values based on the comparison
+
+score[score < 50] = 0 # replace values < 50 to 0
+#it is called boolean indexing or masking
+# Syntax: array[mask] = value 
+# mask is a boolean array of the same shape as the original array, where True indicates the elements to be replaced and False indicates the elements to be kept unchanged.
+# score[True] = 0 replace all values to 0 since True is passed instead of mask
+print(score) # prints [90 80  0 60] since the value less than 50 is replaced with 0
