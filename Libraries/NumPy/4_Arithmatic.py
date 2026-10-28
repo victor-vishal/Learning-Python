@@ -22,3 +22,20 @@ print(np.ceil(array)) # rounds up each element in the array to the nearest integ
 
 # numpy has built in constants as well, for example pi and e
 print(f"{np.pi:.2f}") # returns the value of pi
+
+#print area of circle with radius 5
+r = np.array((2,1,3,4))
+print(np.pi * r ** 2)
+
+
+
+# Element wise arithmetic operations
+array1 = np.array([1,2,3,4])
+array2 = np.array([5,6,7,8])
+
+print (array1 + array2) 
+print (array1 - array2)
+# similarly we can perform *, /, ** operations as well
+# to concatenate two arrays we can use np.concatenate() function
+array3 = np.concatenate((array1, array2))
+print(array3) # prints [1 2 3 4 5 6 7 8]
