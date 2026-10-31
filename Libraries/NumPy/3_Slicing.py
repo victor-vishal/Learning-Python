@@ -35,3 +35,4 @@ print("\n", array[0:2, 0:2]) # prints 1st and 2nd row and 1st and 2nd column (fi
 print(array[0:2, 2:4]) #prints 1st, 2nd row and 3rd, 4th column (second quadrant)
 #or
 print(array[0:2, 2:]) #prints 1st, 2nd row and 3rd, 4th column (second quadrant)
+#if slicing is done till end of array then we can skip the end index
