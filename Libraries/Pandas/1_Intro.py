@@ -4,3 +4,8 @@
 import pandas as pd
 
 print(pd.__version__)  # prints the version of pandas installed
+#pandas is like python version of excel
+# in pandas we have two main objects/ Data Structures:
+# 1. Series: a 1D array or 1d labeled column,
+# 2. DataFrame: a 2D array or 2D labeled grid or table with rows and columns
+# using pandas we can import, display, manipulate and export data
