@@ -20,3 +20,24 @@ print('AvgHP: ', df['HP'].mean())
 print('MaxHP: ', df['HP'].max())
 print('STD of HP: ', df['HP'].std())
 print('number of elements in HP column: ',df['HP'].count())
+
+# For multiple columns: We pass a list of column names
+print(df[['HP', 'Attack']].mean())
+
+# groupby() function is used to group the data based on a column and then apply aggregate functions on the grouped data
+# Syntax: df.groupby('col').aggregate_func() or pass a list of columns to group by multiple columns
+
+# group = df.groupby(['Type 1', 'Type 2']) # groupby() function returns a DataFrameGroupBy object (or a SeriesGroupBy if you select a single column)
+group = df.groupby('Type 1') 
+print(group['HP'].mean()) # it gives average HP of each Type 1 pokemon, 
+# so basically the dataset is split into as many groups as there are unique values in type 1 column then it groups the similar value together
+# in above code we apply mean() function on the data grouped by type 1, meaning it will give average HP of every Type 1 group
+
+# to know average attack of each type 1
+print(group['Attack'].mean().round(2)) #round(2) is a pandas function to round the values upto the passed integer value
+
+# total HP of each group
+print(group['HP'].sum())
+
+# Weakest pokemon attack in each Type 1 (minimum Attack)
+print(group['Attack'].min())
