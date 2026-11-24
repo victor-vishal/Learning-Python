@@ -1,8 +1,9 @@
 """
 compare_students.py
 -------------------
-Compare one column (e.g. Name or RollNo) between two Excel files and export
-the differences to  difference_of_2_files.csv
+Compare one column (e.g. RollNo or Name) between two Excel files, print a
+report, and APPEND the same report to  difference_of_2_files.csv
+(each run becomes its own bordered section).
 
 How to use
     1. Put this script and your .xlsx files in the same folder.
@@ -15,20 +16,25 @@ Needs:  pip install pandas openpyxl
 
 import sys
 import re
+import csv
 import difflib
 from collections import Counter
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
 OUTPUT_NAME = "difference_of_2_files.csv"
+BORDER = "═" * 70   # not "=" because Excel treats a CSV cell starting with "=" as a formula
 
 # Cell values that tell us "this row is the header row"
 HEADER_HINTS = {"name", "rollno", "roll no", "roll number", "student name", "enrollment no"}
+ROLL_HINTS = {"rollno", "roll no", "roll number", "enrollment no"}
+NAME_HINTS = {"name", "student name"}
 
 
 # --------------------------------------------------------------------------
-# Small helpers for asking the user questions
+# Asking the user questions
 # --------------------------------------------------------------------------
 def ask_choice(title, options, default=None):
     """Show a numbered list and return the index chosen (0-based)."""
@@ -64,7 +70,7 @@ def find_header_row(raw, max_scan=15):
 
 def build_labels(raw, header_row):
     """
-    Build readable column labels. If the header cell is blank or just a number
+    Readable column labels. If the header cell is blank or just a number
     (like the max-marks 27, 35...), use the text from the row above instead
     (like 'CS 503[T]').
     """
@@ -104,56 +110,137 @@ def load_sheet(path):
 def pick_column(df, file_label):
     """List all column names and ask which one to compare."""
     cols = list(df.columns)
-    default = next((i for i, c in enumerate(cols) if clean(c) == "name"), None)
+    default = next((i for i, c in enumerate(cols) if clean(c) in ROLL_HINTS), None)
+    if default is None:
+        default = next((i for i, c in enumerate(cols) if clean(c) in NAME_HINTS), None)
     return cols[ask_choice(f"Columns in {file_label} - which one to compare?", cols, default)]
 
 
 # --------------------------------------------------------------------------
-# Comparison
+# Building the comparison
 # --------------------------------------------------------------------------
-def to_counter(series):
-    """Return (Counter of cleaned values, {cleaned value: original text})."""
-    series = series.dropna()
-    series = series[series.astype(str).str.strip() != ""]
-    display, counts = {}, Counter()
-    for original in series:
-        key = clean(original)
-        counts[key] += 1
-        display.setdefault(key, str(original).strip())
-    return counts, display
+def find_col(df, hints):
+    return next((c for c in df.columns if clean(c) in hints), None)
 
 
-def closest(name, candidates):
-    """Best spelling match from the other side (helps spot typos)."""
-    hit = difflib.get_close_matches(name, candidates, n=1, cutoff=0.75)
-    return hit[0] if hit else ""
+def shown_columns(df, compared):
+    """Which columns to display in the report: {report header: df column}."""
+    roll, name = find_col(df, ROLL_HINTS), find_col(df, NAME_HINTS)
+    cols = {}
+    if compared not in (roll, name):
+        cols[str(compared)] = compared
+    if roll:
+        cols["RollNo"] = roll
+    if name:
+        cols["Name"] = name
+    return cols
 
 
-def compare(counts_a, disp_a, counts_b, disp_b, label_a, label_b):
-    only_a = sorted(k for k in counts_a if k not in counts_b)
-    only_b = sorted(k for k in counts_b if k not in counts_a)
-    count_diff = sorted(k for k in counts_a if k in counts_b and counts_a[k] != counts_b[k])
+def build_entries(df, compared, cols):
+    """clean key -> {'count', 'value' (as written), 'info' {header: text}}"""
+    entries = {}
+    for _, row in df.iterrows():
+        v = row[compared]
+        if pd.isna(v) or str(v).strip() == "":
+            continue
+        key = clean(v)
+        if key not in entries:
+            entries[key] = {
+                "count": 0,
+                "value": str(v).strip(),
+                "info": {h: ("" if pd.isna(row[c]) else str(row[c]).strip()) for h, c in cols.items()},
+            }
+        entries[key]["count"] += 1
+    return entries
 
-    rows = []
-    for k in only_a:
-        rows.append({
-            "Value": disp_a[k], "Status": f"Only in {label_a}",
-            f"Count in {label_a}": counts_a[k], f"Count in {label_b}": 0,
-            "Possible match in other file": disp_b.get(closest(k, only_b), ""),
+
+def similar_text(key, other_keys, other_entries):
+    """Closest spelling in the other file (helps spot typos)."""
+    hit = difflib.get_close_matches(key, other_keys, n=1, cutoff=0.75)
+    if not hit:
+        return ""
+    info = other_entries[hit[0]]["info"]
+    return " / ".join(v for v in info.values() if v)
+
+
+def build_report(ea, eb, cols_a, cols_b, label_a, label_b, compared_header, has_names):
+    """Return a list of sections: {'title', 'header', 'rows'}."""
+    only_a = sorted(k for k in ea if k not in eb)
+    only_b = sorted(k for k in eb if k not in ea)
+    both = sorted(k for k in ea if k in eb)
+    sections = []
+
+    if only_a:
+        sections.append({
+            "title": f"Only in {label_a} (missing from {label_b})",
+            "header": list(cols_a) + ["Similar in other file"],
+            "rows": [list(ea[k]["info"].values()) + [similar_text(k, only_b, eb)] for k in only_a],
         })
-    for k in only_b:
-        rows.append({
-            "Value": disp_b[k], "Status": f"Only in {label_b}",
-            f"Count in {label_a}": 0, f"Count in {label_b}": counts_b[k],
-            "Possible match in other file": disp_a.get(closest(k, only_a), ""),
+    if only_b:
+        sections.append({
+            "title": f"Only in {label_b} (missing from {label_a})",
+            "header": list(cols_b) + ["Similar in other file"],
+            "rows": [list(eb[k]["info"].values()) + [similar_text(k, only_a, ea)] for k in only_b],
         })
-    for k in count_diff:
-        rows.append({
-            "Value": disp_a[k], "Status": "Appears a different number of times",
-            f"Count in {label_a}": counts_a[k], f"Count in {label_b}": counts_b[k],
-            "Possible match in other file": "",
+
+    count_diff = [k for k in both if ea[k]["count"] != eb[k]["count"]]
+    if count_diff:
+        sections.append({
+            "title": "Appear a different number of times",
+            "header": list(cols_a) + [f"Count in {label_a}", f"Count in {label_b}"],
+            "rows": [list(ea[k]["info"].values()) + [ea[k]["count"], eb[k]["count"]] for k in count_diff],
         })
-    return rows, only_a, only_b, count_diff
+
+    if has_names:   # same key, but the name written differs
+        name_diff = [k for k in both
+                     if clean(ea[k]["info"].get("Name", "")) != clean(eb[k]["info"].get("Name", ""))]
+        if name_diff:
+            sections.append({
+                "title": f"Same {compared_header} but the Name differs",
+                "header": [compared_header, f"Name in {label_a}", f"Name in {label_b}"],
+                "rows": [[ea[k]["value"], ea[k]["info"]["Name"], eb[k]["info"]["Name"]] for k in name_diff],
+            })
+    return sections
+
+
+# --------------------------------------------------------------------------
+# Output: console + CSV (same content)
+# --------------------------------------------------------------------------
+def print_report(summary_lines, sections):
+    print("\n" + "=" * 60)
+    print("RESULT")
+    print("=" * 60)
+    for line in summary_lines:
+        print(line)
+    if not sections:
+        print("\nNo differences - every value matches in both files.")
+    for s in sections:
+        print(f"\n{s['title']}  [{len(s['rows'])}]:")
+        for row in s["rows"]:
+            shown = [str(c) for c in row[:len(s["header"])] if str(c) != ""]
+            print("  - " + "  |  ".join(shown))
+
+
+def append_csv(path, meta_rows, summary_lines, sections):
+    rows = [[BORDER], ["COMPARISON RUN", datetime.now().strftime("%d %b %Y, %I:%M %p")]]
+    rows += meta_rows
+    rows += [["Result", line] for line in summary_lines]
+    rows.append([])
+    if not sections:
+        rows += [["No differences - every value matches in both files."], []]
+    for s in sections:
+        rows.append([s["title"], f"{len(s['rows'])} found"])
+        rows.append(s["header"])
+        rows += s["rows"]
+        rows.append([])
+    rows += [[BORDER], [], []]
+
+    encoding = "utf-8" if path.exists() else "utf-8-sig"   # BOM only at the very start of a new file
+    try:
+        with open(path, "a", newline="", encoding=encoding) as f:
+            csv.writer(f).writerows(rows)
+    except PermissionError:
+        sys.exit(f"\nCouldn't write to {path}. Is it open in Excel? Close it and run again.")
 
 
 # --------------------------------------------------------------------------
@@ -179,45 +266,31 @@ def main():
     col_a = pick_column(df_a, f"'{file_a.name}'")
     col_b = pick_column(df_b, f"'{file_b.name}'")
 
-    counts_a, disp_a = to_counter(df_a[col_a])
-    counts_b, disp_b = to_counter(df_b[col_b])
-    total_a, total_b = sum(counts_a.values()), sum(counts_b.values())
+    cols_a, cols_b = shown_columns(df_a, col_a), shown_columns(df_b, col_b)
+    ea, eb = build_entries(df_a, col_a, cols_a), build_entries(df_b, col_b, cols_b)
+    total_a = sum(e["count"] for e in ea.values())
+    total_b = sum(e["count"] for e in eb.values())
 
-    rows, only_a, only_b, count_diff = compare(counts_a, disp_a, counts_b, disp_b, label_a, label_b)
+    compared_header = next((h for h, c in cols_a.items() if c == col_a), str(col_a))
+    has_names = "Name" in cols_a and "Name" in cols_b and compared_header != "Name"
+    sections = build_report(ea, eb, cols_a, cols_b, label_a, label_b, compared_header, has_names)
 
-    # ---- console report ----
-    print("\n" + "=" * 60)
-    print("RESULT")
-    print("=" * 60)
-    print(f"{label_a}: {total_a} entries   |   {label_b}: {total_b} entries")
+    summary = [f"{label_a}: {total_a} entries   |   {label_b}: {total_b} entries"]
     if total_a == total_b:
-        print("Both files have the same number of entries.")
+        summary.append("Both files have the same number of entries.")
     else:
         bigger, smaller = (label_a, label_b) if total_a > total_b else (label_b, label_a)
-        print(f"-> {bigger} has {abs(total_a - total_b)} MORE than {smaller}.")
+        summary.append(f"{bigger} has {abs(total_a - total_b)} MORE than {smaller}.")
 
-    if not rows:
-        print("\nNo differences - every value matches in both files.")
-    else:
-        for title, keys, disp in [
-            (f"Only in {label_a} (missing from {label_b})", only_a, disp_a),
-            (f"Only in {label_b} (missing from {label_a})", only_b, disp_b),
-        ]:
-            if keys:
-                print(f"\n{title}:")
-                for k in keys:
-                    print(f"  - {disp[k]}")
-        if count_diff:
-            print("\nAppear a different number of times:")
-            for k in count_diff:
-                print(f"  - {disp_a[k]}: {counts_a[k]} in {label_a}, {counts_b[k]} in {label_b}")
+    print_report(summary, sections)
 
-    # ---- export CSV ----
+    meta = [
+        ["File 1", file_a.name, "Sheet", sheet_a, "Column compared", str(col_a)],
+        ["File 2", file_b.name, "Sheet", sheet_b, "Column compared", str(col_b)],
+    ]
     out_path = folder / OUTPUT_NAME
-    columns = ["Value", "Status", f"Count in {label_a}", f"Count in {label_b}",
-               "Possible match in other file"]
-    pd.DataFrame(rows, columns=columns).to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"\nSaved: {out_path}")
+    append_csv(out_path, meta, summary, sections)
+    print(f"\nAppended to: {out_path}")
 
 
 if __name__ == "__main__":
